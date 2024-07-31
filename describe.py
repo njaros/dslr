@@ -1,65 +1,77 @@
-"""this program take a dataset as a parameter and display information
+"""This program take a dataset as a parameter and display information
 for all numerical features"""
 
-import os
 import sys
 import math
 import pandas as pd
 
+from load_csv import load
 
-def my_mean(vector: list) -> float:
+
+def my_count(col: pd.Series) -> int:
+    """Return size of this column"""
+    cnt = 0
+    for _ in col:
+        cnt += 1
+    return cnt
+
+
+def my_min(col: pd.Series) -> float:
+    """Return the minimun value of this column"""
+    min_val = col[0]
+    for x in col:
+        if x < min_val:
+            min_val = x
+    return min_val
+
+
+def my_max(col: pd.Series) -> float:
+    """Return the maximum value of this column"""
+    max_val = col[0]
+    for x in col:
+        if x > max_val:
+            max_val = x
+    return max_val
+
+
+def my_mean(col: pd.Series) -> float:
     """Calculate Mean"""
-    return sum(x for x in vector) / len(vector)
+    return sum(x for x in col) / col.count()
 
 
-def my_median(vector: list) -> float:
+def my_median(col: pd.Series) -> float:
     """Calculate Median"""
-    n = len(vector)
+    n = col.count()
     if n % 2 != 0:
         index = n / 2
-        return vector[int(index)]
+        return col[int(index)]
 
-    first_nb = vector[int(n / 2) - 1]
-    second_nb = vector[int((n / 2))]
+    first_nb = col[int(n / 2) - 1]
+    second_nb = col[int((n / 2))]
     return (first_nb + second_nb) / 2
 
 
-def my_quartile_25(vector: list) -> float: 
+def my_quartile_25(col: pd.Series) -> float:
     """Calculate Quartile (25% and 75%)"""
-    quart = len(vector) / 4
-    return vector[int(quart)]
+    quart = col.count() / 4
+    return col[int(quart)]
 
 
-def my_quartile_75(vector: list) -> float:
+def my_quartile_75(col: pd.Series) -> float:
     """Calculate Quartile (25% and 75%)"""
-    quart = len(vector) / 4
-    return vector[int(3 * quart)]
+    quart = col.count() / 4
+    return col[int(3 * quart)]
 
 
-def my_variance(vector: list) -> float:
+def my_variance(col: pd.Series) -> float:
     """Calculate Variance"""
-    mean = my_mean(vector)
-    return sum(pow((x - mean), 2) for x in vector) / len(vector)
+    mean = my_mean(col)
+    return sum(pow((x - mean), 2) for x in col) / col.count()
 
 
-def my_std(vector: list) -> float:
+def my_std(col: pd.Series) -> float:
     """Calculate Standard Deviation"""
-    return math.sqrt(my_variance(vector))
-
-
-def load(path: str):
-    """Load a data file using pandas library"""
-    try:
-        assert isinstance(path, str), "your path is not valid."
-        assert os.path.exists(path), "your file doesn't exist."
-        assert os.path.isfile(path), "your 'file' is not a file."
-        assert path.lower().endswith(".csv"), "file format is not .csv."
-        data = pd.read_csv(path)
-        print(f"Loading dataset of dimensions {data.shape}")
-        return data
-    except AssertionError as msg:
-        print(f"{msg.__class__.__name__}: {msg}")
-        return None
+    return math.sqrt(my_variance(col))
 
 
 def main():
@@ -73,18 +85,20 @@ def main():
             # print(data.describe())
             dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
             for col in data.columns:
-                if pd.api.types.is_numeric_dtype(data[col]) and col != "Index":
-                    data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
-                    dscb[col] = [len(data_lst),
-                                 my_mean(data_lst),
-                                 my_std(data_lst),
-                                 min(data_lst),
-                                 my_quartile_25(data_lst),
-                                 my_median(data_lst),
-                                 my_quartile_75(data_lst),
-                                 max(data_lst)
+                if pd.api.types.is_numeric_dtype(data[col]) and col == "Astronomy":
+                    # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
+                    data = data[col].sort_values().dropna()
+                    dscb[col] = [my_count(data),
+                                 my_mean(data),
+                                 my_std(data),
+                                 my_min(data),
+                                 my_quartile_25(data),
+                                 my_median(data),
+                                 my_quartile_75(data),
+                                 my_max(data)
                                  ]
-
             print(dscb)
+
+
 if __name__ == "__main__":
     main()
