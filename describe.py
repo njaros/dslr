@@ -9,7 +9,7 @@ import pandas as pd
 
 def my_mean(vector: list) -> float:
     """Calculate Mean"""
-    return sum(x for x in vector) / 1600
+    return sum(x for x in vector) / len(vector)
 
 
 def my_median(vector: list) -> float:
@@ -44,7 +44,7 @@ def my_variance(vector: list) -> float:
 
 def my_std(vector: list) -> float:
     """Calculate Standard Deviation"""
-    return my_variance(vector) ** 0.5
+    return math.sqrt(my_variance(vector))
 
 
 def load(path: str):
@@ -73,7 +73,7 @@ def main():
             # print(data.describe())
             dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
             for col in data.columns:
-                if pd.api.types.is_numeric_dtype(data[col]) and col == "Charms":
+                if pd.api.types.is_numeric_dtype(data[col]) and col != "Index":
                     data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
                     dscb[col] = [len(data_lst),
                                  my_mean(data_lst),
