@@ -1,8 +1,11 @@
+"""This script displays a histogram answering the question :
+Which Hogwarts course has a homogeneous score distribution between all four houses?"""
+
 import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from load_csv import load
+from utils import load, standardize, normalize
 
 
 def main():
@@ -13,9 +16,8 @@ def main():
         dataset = load(sys.argv[1])
         if dataset is not None:
             dataset.drop(columns="Index", inplace=True)
-            print(dataset.head(10))
-
-            grouped = dataset.groupby("Hogwarts House")
+            df_stand = standardize(dataset)
+            grouped = df_stand.groupby("Hogwarts House")
             colors = ["b", "g", "r", "y"]
             _, axes = plt.subplots(nrows=3, ncols=5, figsize=(20, 10))
             blop = 0
