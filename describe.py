@@ -79,15 +79,15 @@ def main():
     if len(sys.argv) != 2:
         print("Incorrect input.")
     else:
-        data = load(sys.argv[1])
-        if data is not None:
+        dataset = load(sys.argv[1])
+        if dataset is not None:
             # print(data.head(10))
             # print(data.describe())
             dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
-            for col in data.columns:
-                if pd.api.types.is_numeric_dtype(data[col]) and col == "Astronomy":
+            for col in dataset.columns:
+                if pd.api.types.is_numeric_dtype(dataset[col]) and col == "Astronomy":
                     # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
-                    data = data[col].sort_values().dropna()
+                    data = dataset[col].sort_values().dropna()
                     dscb[col] = [my_count(data),
                                  my_mean(data),
                                  my_std(data),
