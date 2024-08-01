@@ -5,7 +5,7 @@ import sys
 import math
 import pandas as pd
 
-from load_csv import load
+from utils import load
 
 
 def my_count(col: pd.Series) -> int:
