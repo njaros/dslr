@@ -1,5 +1,6 @@
 import sys
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from load_csv import load
 
@@ -13,35 +14,21 @@ def main():
         if dataset is not None:
             dataset.drop(columns="Index", inplace=True)
             print(dataset.head(10))
+
             grouped = dataset.groupby("Hogwarts House")
-            ravenclaw_data = grouped.get_group("Ravenclaw")
-            # print(ravenclaw_data)
-            slytherin_data = grouped.get_group("Slytherin")
-            gryffindor_data = grouped.get_group("Gryffindor")
-            hufflepuff_data = grouped.get_group("Hufflepuff")
-            _, axes = plt.subplots(nrows=2, ncols=7, figsize=(40, 4))
-            ravenclaw_data.hist(
-                ax=axes.ravel(),
-                alpha=0.5,
-                color="b",
-            )
-            slytherin_data.hist(
-                ax=axes.ravel(),
-                alpha=0.5,
-                color="g",
-            )
-            gryffindor_data.hist(
-                ax=axes.ravel(),
-                alpha=0.5,
-                color="r",
-            )
-            hufflepuff_data.hist(
-                ax=axes.ravel(),
-                alpha=0.5,
-                color="y",
-            )
-            plt.legend(labels=("Ravenclaw", "Slytherin", "Gryffindor", "Hufflepuff"))
-            plt.tight_layout()
+            colors = ["b", "g", "r", "y"]
+            _, axes = plt.subplots(nrows=3, ncols=5, figsize=(20, 10))
+            blop = 0
+            x = 0
+            for col in dataset.columns:
+                if pd.api.types.is_numeric_dtype(dataset[col]):
+                    y = blop % 5
+                    for i, (_, group) in enumerate(grouped):
+                        axes[x, y].hist(group[col], alpha=0.5, color=colors[i])
+                        axes[x, y].set_title(col)
+                    blop += 1
+                    if blop % 5 == 0:
+                        x += 1
             plt.show()
 
 

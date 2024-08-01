@@ -85,7 +85,7 @@ def main():
             # print(data.describe())
             dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
             for col in dataset.columns:
-                if pd.api.types.is_numeric_dtype(dataset[col]) and col == "Astronomy":
+                if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
                     # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
                     data = dataset[col].sort_values().dropna()
                     dscb[col] = [my_count(data),
