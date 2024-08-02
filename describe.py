@@ -8,16 +8,9 @@ import pandas as pd
 from utils import load
 
 
-def my_count(col: pd.Series) -> int:
-    """Return size of this column"""
-    cnt = 0
-    for _ in col:
-        cnt += 1
-    return cnt
-
-
 def my_min(col: pd.Series) -> float:
     """Return the minimun value of this column"""
+    assert len(col) != 0, f"{col.name} is empty."
     min_val = col[0]
     for x in col:
         if x < min_val:
@@ -27,6 +20,7 @@ def my_min(col: pd.Series) -> float:
 
 def my_max(col: pd.Series) -> float:
     """Return the maximum value of this column"""
+    assert len(col) != 0, f"{col.name} is empty."
     max_val = col[0]
     for x in col:
         if x > max_val:
@@ -36,37 +30,40 @@ def my_max(col: pd.Series) -> float:
 
 def my_mean(col: pd.Series) -> float:
     """Calculate Mean"""
-    return sum(x for x in col) / col.count()
+    assert len(col) != 0, f"{col.name} is empty."
+    return sum(x for x in col) / len(col)
 
 
 def my_median(col: pd.Series) -> float:
     """Calculate Median"""
-    n = col.count()
-    if n % 2 != 0:
-        index = n / 2
-        return col[int(index)]
+    assert len(col) != 0, f"{col.name} is empty."
+    m = len(col)
+    if m % 2 != 0:
+        return col.iloc[m // 2]
 
-    first_nb = col[int(n / 2) - 1]
-    second_nb = col[int((n / 2))]
+    first_nb = col.iloc[m // 2 - 1]
+    second_nb = col.iloc[m // 2]
     return (first_nb + second_nb) / 2
 
 
 def my_quartile_25(col: pd.Series) -> float:
-    """Calculate Quartile (25% and 75%)"""
-    quart = col.count() / 4
-    return col[int(quart)]
+    """Calculate Quartile (25%)"""
+    assert len(col) != 0, f"{col.name} is empty."
+    mid = len(col) // 2
+    return my_median(col.iloc[:mid])
 
 
 def my_quartile_75(col: pd.Series) -> float:
-    """Calculate Quartile (25% and 75%)"""
-    quart = col.count() / 4
-    return col[int(3 * quart)]
+    """Calculate Quartile (75%)"""
+    assert len(col) != 0, f"{col.name} is empty."
+    mid = len(col) // 2
+    return my_median(col.iloc[mid:])
 
 
 def my_variance(col: pd.Series) -> float:
     """Calculate Variance"""
     mean = my_mean(col)
-    return sum(pow((x - mean), 2) for x in col) / col.count()
+    return sum(pow((x - mean), 2) for x in col) / len(col)
 
 
 def my_std(col: pd.Series) -> float:
@@ -85,18 +82,21 @@ def main():
             # print(data.describe())
             dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
             for col in dataset.columns:
-                if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
-                    # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
-                    data = dataset[col].sort_values().dropna()
-                    dscb[col] = [my_count(data),
-                                 my_mean(data),
-                                 my_std(data),
-                                 my_min(data),
-                                 my_quartile_25(data),
-                                 my_median(data),
-                                 my_quartile_75(data),
-                                 my_max(data)
-                                 ]
+                try:
+                    if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
+                        # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
+                        data = dataset[col].sort_values().dropna()
+                        dscb[col] = [len(data),
+                                    my_mean(data),
+                                    my_std(data),
+                                    my_min(data),
+                                    my_quartile_25(data),
+                                    my_median(data),
+                                    my_quartile_75(data),
+                                    my_max(data)
+                                    ]
+                except AssertionError as msg:
+                    print(f"{msg.__class__.__name__}: {msg}")
             print(dscb)
 
 
