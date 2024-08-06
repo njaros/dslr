@@ -71,6 +71,31 @@ def my_std(col: pd.Series) -> float:
     return math.sqrt(my_variance(col))
 
 
+def describe(dataset: pd.DataFrame):
+    """Display information for all numerical features"""
+    dscb = pd.DataFrame(
+        index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"]
+    )
+    for col in dataset.columns:
+        try:
+            if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
+                # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
+                data = dataset[col].sort_values().dropna()
+                dscb[col] = [
+                    len(data),
+                    my_mean(data),
+                    my_std(data),
+                    my_min(data),
+                    my_quartile_25(data),
+                    my_median(data),
+                    my_quartile_75(data),
+                    my_max(data),
+                ]
+        except AssertionError as msg:
+            print(f"{msg.__class__.__name__}: {msg}")
+    print(dscb)
+
+
 def main():
     """Main function"""
     if len(sys.argv) != 2:
@@ -80,25 +105,7 @@ def main():
         if dataset is not None:
             # print(data.head(10))
             # print(data.describe())
-            dscb = pd.DataFrame(index=["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"])
-            for col in dataset.columns:
-                try:
-                    if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
-                        # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
-                        data = dataset[col].sort_values().dropna()
-                        dscb[col] = [len(data),
-                                    my_mean(data),
-                                    my_std(data),
-                                    my_min(data),
-                                    my_quartile_25(data),
-                                    my_median(data),
-                                    my_quartile_75(data),
-                                    my_max(data)
-                                    ]
-                except AssertionError as msg:
-                    print(f"{msg.__class__.__name__}: {msg}")
-            print(dscb)
-
+            describe(dataset)
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,7 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from utils import load, standardize, normalize
+from utils import load, standardize
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
             df_stand = standardize(dataset)
             grouped = df_stand.groupby("Hogwarts House")
             colors = ["b", "g", "r", "y"]
-            _, axes = plt.subplots(nrows=3, ncols=5, figsize=(20, 10))
+            _, axes = plt.subplots(nrows=3, ncols=5, figsize=(30, 20))
             blop = 0
             x = 0
             for col in dataset.columns:
@@ -31,7 +31,7 @@ def main():
                     blop += 1
                     if blop % 5 == 0:
                         x += 1
-            plt.show()
+            plt.savefig("Histogram.png")
 
 
 if __name__ == "__main__":

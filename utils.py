@@ -7,7 +7,7 @@ def standardize(dataset: pd.DataFrame) -> pd.DataFrame:
     df = dataset.copy(deep=True)
     for col in df.columns:
         if not pd.api.types.is_string_dtype(df[col]):
-            df[col] = (df[col].dropna().subtract(df[col].mean()).divide(df[col].std()))
+            df[col] = df[col].dropna().subtract(df[col].mean()).divide(df[col].std())
     return df
 
 
