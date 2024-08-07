@@ -29,44 +29,59 @@ FEATURES_TO_REMOVE = [
     "Charms",
     "Flying",
     "Astronomy",
-    "Herbology"
+    "Herbology",
 ]
 
 
-def sigmoid_function(features: np.ndarray[np.float64], coefs: np.ndarray[np.float64], target):
+def sigmoid_function(features: np.ndarray[np.float64], coefs: np.ndarray[np.float64]):
     """Sigmoid function that returns probabilities of an individual
     being in a particular house"""
-    z = features.dot(coefs)
-    p = 1 / (1 + np.exp(-z))
-    res = [1 for x in p if x > 0.5]
-    blop = [1 for y in target if y == 1]
-    print(len(blop))
-    print(len(res))
-    lg = np.log(p / (1 - p))
+    z = np.array(features.dot(coefs), dtype=float)
+    probabilities = 1 / (1 + np.exp(-z))
+    # res = [1 if x > 0.5 else 0 for x in probabilities]
 
-    _, axes = plt.subplots(nrows=2, ncols=2, figsize=(20, 10))
-    axes[1, 0].scatter(features.T[0], target)
-    axes[1, 0].set_title("Dataset with Astronomy")
-    axes[0, 0].scatter(features.T[0], z)
-    axes[0, 0].set_title("Linear function")
-    axes[1, 1].scatter(features.T[0], p)
-    axes[1, 1].set_title("Sigmoid function")
-    axes[0, 1].scatter(features.T[0], lg)
-    axes[0, 1].set_title("Log(odds)")
-    plt.show()
-# def cost_function()
+    return probabilities
+
+
+def cost_function(sigma, target):
+    """Log-likelihood : probability of observing the good results"""
+    return -sum(target * np.log(sigma) + (1 - target) * np.log(1 - sigma)) / target.size
+
+
+def find_gradients(features, sigma, target):
+    """Find gradients with partial differential of thetas"""
+    features_T = np.transpose(features)  # ndarray(n-features + 1, m)
+    return features_T.dot(np.subtract(sigma, target)) / target.size
 
 
 def training(dataset: pd.DataFrame):
     """This function will find the most optimized thetas to minimize cost function"""
-    # cost_history: list[float] = []
+    cost_history: list[float] = []
+    nb_iter = 100
+    learning_rate = 3
+
     a = dataset.drop(columns="Hogwarts House").to_numpy()
     b = np.ones((a.shape[0], 1))
-    features = np.hstack((a, b))  # ndarray(m, 3)
-    coefs = np.random.randn(features.shape[1], 1)  # ndarray(3, 1)
-    target = dataset["Hogwarts House"].to_numpy()[:, np.newaxis]  # ndarray(m, 1)
-    sigmoid_function(features, coefs, target)
-    # print(hey)
+    features = np.hstack((a, b))  # ndarray(m, n-features + 1 for biais)
+    coefs = np.zeros(features.shape[1])  # ndarray(n-features + 1)
+    # coefs = np.array([-1.19, -8])
+    target = dataset["Hogwarts House"].to_numpy()  # ndarray(m)
+
+    for i in range(nb_iter):
+        proba = sigmoid_function(features, coefs)  # ndarray(m)
+        cost_history.append(cost_function(proba, target))
+        gradients = find_gradients(features, proba, target)  # ndarray(n-features + 1)
+        coefs = np.subtract(
+            coefs, (learning_rate * gradients)
+        )  # ndarray(n-features + 1)
+
+    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    axes[0].scatter(features.T[0], target, color="b", s=5, alpha=0.4)
+    axes[0].scatter(features.T[0], proba, color="r", s=4, alpha=0.6)
+    axes[0].set_title("Slytherin relative to Divination")
+    axes[1].plot(list(range(i + 1)), cost_history)
+    axes[1].set_title("Cost history")
+    plt.show()
 
 
 def main():
@@ -91,8 +106,6 @@ def main():
                 },
                 inplace=True,
             )
-            # print(df_stand.head(10))
-            # describe(df_stand)
             training(df_stand)
 
 
