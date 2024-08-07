@@ -36,7 +36,7 @@ if __name__ == "__main__":
     if ac == 1 or av[1] == "-h" or av[1] == "-help":
         print(
             """
-            usage : python histogram.py path_csv_file
+            usage : python pair_plot.py path_csv_file
 
             rule : this program will create all the pair_scatter_plots
                    for each feature between all the Hogwarts House
