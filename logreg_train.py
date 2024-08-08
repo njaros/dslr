@@ -8,6 +8,32 @@ import tqdm
 pd.options.mode.chained_assignment = None
 
 
+def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
+    """harry_plotter function
+
+    The magicien of the plots !
+    Create a house_name.png which shows the result of a training
+    """
+    feat = df.columns[1]
+    res = df.columns[0]
+    min = int(np.floor(df[feat].min()))
+    max = int(np.ceil(df[feat].max()))
+    print(f"{min=} {max=}")
+    x = []
+    y = []
+    plt.clf()
+    plt.scatter(df[feat], df[res], c="r", s=1)
+    for i in range(min, max):
+        for j in range(10):
+            x.append(i + 0.1 * j)
+            y.append(sigmoide(estimate_member(i + 0.1 * j, theta0, theta1)))
+    plt.plot(x, y, "b")
+    plt.plot([min, max], [0.5, 0.5], "black")
+    plt.xlabel(f"{house} member")
+    plt.ylabel(feat)
+    plt.savefig(f"{house}.png")
+
+
 def estimate_member(value: float, theta0: float, theta1: float) -> float:
     """estimate_member function
 
@@ -123,10 +149,13 @@ def house_training(df: pd.DataFrame, house: str, feat: str, json_data: dict):
     json_data[house]["std"] = std
     new_df[feat] = new_df[feat].subtract(mean).divide(std)
     print(f"training for {house} with feature {feat}...")
-    theta0, theta1 = build_thetas(new_df, 0.3, 100)
+    theta0, theta1 = build_thetas(new_df, 0.5, 100)
     json_data[house]["theta0"] = theta0
     json_data[house]["theta1"] = theta1
     print("training succesfully done.")
+    print(f"creating feedback plots file {house}.png")
+    harry_plotter(new_df, house, theta0, theta1)
+    print(f"{house}.png created")
 
 
 def train(path):
@@ -141,7 +170,7 @@ def train(path):
     df = pd.read_csv(path)
     json_data = {}
     house_training(df, "Slytherin", "Divination", json_data)
-    house_training(df, "Ravenclaz", "Charms", json_data)
+    house_training(df, "Ravenclaw", "Charms", json_data)
     house_training(df, "Gryffindor", "Transfiguration", json_data)
     with open("model.json", "w") as io:
         json.dump(json_data, io, indent=4)
