@@ -12,17 +12,17 @@ FEATURES_TO_REMOVE = [
     "Hogwarts House",
     "Arithmancy",
     "Defense Against the Dark Arts",
-    # "Divination",
+    "Divination",
     "Muggle Studies",
     "Ancient Runes",
     "History of Magic",
-    # "Transfiguration",
+    "Transfiguration",
     "Potions",
     "Care of Magical Creatures",
-    # "Charms",
+    "Charms",
     "Flying",
-    "Astronomy",
-    "Herbology",
+    # "Astronomy",
+    # "Herbology",
 ]
 
 
@@ -40,7 +40,7 @@ def get_data(df: pd.DataFrame) -> pd.DataFrame:
     """Get data for predictions"""
     new_df = df.select_dtypes(["number"])
     new_df.drop(columns=FEATURES_TO_REMOVE, inplace=True)
-    df.dropna(inplace=True)
+    new_df.dropna(inplace=True)
     df_stand = standardize(new_df)
 
     return df_stand
