@@ -16,16 +16,16 @@ FEATURES_TO_REMOVE = [
     "Arithmancy",
     "Defense Against the Dark Arts",
     # "Divination",
-    # "Muggle Studies",
+    "Muggle Studies",
     "Ancient Runes",
     "History of Magic",
     # "Transfiguration",
-    # "Potions",
+    "Potions",
     "Care of Magical Creatures",
     # "Charms",
     "Flying",
-    # "Astronomy",
-    # "Herbology",
+    "Astronomy",
+    "Herbology",
 ]
 
 
@@ -118,8 +118,7 @@ def main():
                 weights[col] = thetas
 
             with open("weigths.json", "w", encoding="utf8") as file:
-                json.dump(weights, file, indent=4)
-                file.close()
+                json.dump(weights, file)
 
 
 if __name__ == "__main__":
