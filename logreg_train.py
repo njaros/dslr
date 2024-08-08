@@ -15,17 +15,17 @@ FEATURES_TO_REMOVE = [
     "Index",
     "Arithmancy",
     "Defense Against the Dark Arts",
-    # "Divination",
+    "Divination",
     "Muggle Studies",
     "Ancient Runes",
     "History of Magic",
-    # "Transfiguration",
+    "Transfiguration",
     "Potions",
     "Care of Magical Creatures",
-    # "Charms",
+    "Charms",
     "Flying",
-    "Astronomy",
-    "Herbology",
+    # "Astronomy",
+    # "Herbology",
 ]
 
 
