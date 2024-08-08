@@ -18,7 +18,6 @@ def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
     res = df.columns[0]
     min = int(np.floor(df[feat].min()))
     max = int(np.ceil(df[feat].max()))
-    print(f"{min=} {max=}")
     x = []
     y = []
     plt.clf()
@@ -29,8 +28,8 @@ def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
             y.append(sigmoide(estimate_member(i + 0.1 * j, theta0, theta1)))
     plt.plot(x, y, "b")
     plt.plot([min, max], [0.5, 0.5], "black")
-    plt.xlabel(f"{house} member")
-    plt.ylabel(feat)
+    plt.xlabel(feat)
+    plt.ylabel(f"{house} member")
     plt.savefig(f"{house}.png")
 
 
@@ -203,5 +202,5 @@ if __name__ == "__main__":
             train(av[1])
         except UnicodeDecodeError as e:
             print(f"{e.__class__.__name__}: {e.args[4]}")
-        # except Exception as e:
-        #     print(f"{e.__class__.__name__}: {e.args}")
+        except Exception as e:
+            print(f"{e.__class__.__name__}: {e.args}")

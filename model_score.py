@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import json
+from sklearn.model_selection import train_test_split
 
 
 def evaluate(value, theta0, theta1) -> float:
@@ -24,9 +25,18 @@ def predict_one(line, model) -> str:
     return "Hufflepuff"
 
 
+def prepare(df: pd.DataFrame):
+    return df.drop(["Index", "Hogwarts House", "First Name", "Last Name", "Birthday"])
+
+
 def predict(csv_path):
     """predict function"""
     df = pd.read_csv(csv_path)
+    response = df["Hogwarts House"]
+    prepared_train = prepare(df)
+    train_df, test_df, res_train, res_test = train_test_split(
+        prepared_train, response, test_size=0.3, random_state=1
+    )
     with open("model.json", "r") as io:
         model = json.load(io)
         io.close()
