@@ -3,6 +3,7 @@ import pandas as pd
 import sys
 import matplotlib.pyplot as plt
 import json
+import tqdm
 
 pd.options.mode.chained_assignment = None
 
@@ -92,19 +93,19 @@ def build_thetas(
     x = df[df.columns[1]]
     y = df[df.columns[0]]
     datas = list(zip(x, y))
-    for i in range(iterations):
-        print(i)
+    for i in tqdm.tqdm(range(iterations)):
         temp_theta0 = theta0
         theta0 -= learning_rate * gradient_y_intercept(datas, theta0, theta1)
         theta1 -= learning_rate * gradient_slope(datas, temp_theta0, theta1)
     return (theta0, theta1)
 
 
-def separate_house(df: pd.DataFrame, house, feat) -> pd.DataFrame:
+def house_training(df: pd.DataFrame, house: str, feat: str, json_data: dict):
     """
     df: Dataframe: original dataframe
     house: str: targeted house
     feat: str: feature which wille be used for train the model
+    json_data: dict: store results to build the model.json file later
 
     rule: create an exploitable dataframe to train the model
     return: a new dataframe
@@ -116,30 +117,16 @@ def separate_house(df: pd.DataFrame, house, feat) -> pd.DataFrame:
     new_df.rename(columns={"Hogwarts House": f"{house} member"}, inplace=True)
     mean = new_df[feat].mean()
     std = new_df[feat].std()
-    with open("weigths.json", "w") as io:
-        json.dump({f"{feat}_scale": {"mean": mean, "std": std}}, io, indent=4)
-        io.close()
+    json_data[house] = dict()
+    json_data[house]["feature"] = feat
+    json_data[house]["mean"] = mean
+    json_data[house]["std"] = std
     new_df[feat] = new_df[feat].subtract(mean).divide(std)
-    return new_df
-
-
-def do_plot(df: pd.DataFrame, filename):
-    plt.scatter(df[df.columns[1]], df[df.columns[0]])
-    plt.xlabel(df.columns[1])
-    plt.ylabel(df.columns[0])
-    plt.savefig(filename)
-
-
-def do_plot_sigmoide(thetas):
-    results = []
-    x_axis = []
-    x = -5
-    while x < 5:
-        x_axis.append(x)
-        results.append(sigmoide(estimate_member(x, thetas[0], thetas[1])))
-        x += 0.1
-    plt.plot(x_axis, results)
-    plt.savefig("test_log.png")
+    print(f"training for {house} with feature {feat}...")
+    theta0, theta1 = build_thetas(new_df, 0.3, 100)
+    json_data[house]["theta0"] = theta0
+    json_data[house]["theta1"] = theta1
+    print("training succesfully done.")
 
 
 def train(path):
@@ -152,13 +139,14 @@ def train(path):
                 or is to incorrect format, depending of pandas exceptions.
     """
     df = pd.read_csv(path)
-    df_sly = separate_house(df, "Slytherin", "Divination")
-    df_rav = separate_house(df, "Ravenclaz", "Charms")
-    df_gry = separate_house(df, "Gryffindor", "Transfiguration")
-    do_plot(df_sly, "SERPENTAR.png")
-    sly_thetas = build_thetas(df_sly, 0.3, 100)
-    do_plot_sigmoide(sly_thetas)
-    print(sly_thetas)
+    json_data = {}
+    house_training(df, "Slytherin", "Divination", json_data)
+    house_training(df, "Ravenclaz", "Charms", json_data)
+    house_training(df, "Gryffindor", "Transfiguration", json_data)
+    with open("model.json", "w") as io:
+        json.dump(json_data, io, indent=4)
+        io.close()
+        print("model trained and saved in model.json")
 
 
 if __name__ == "__main__":
