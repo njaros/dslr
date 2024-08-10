@@ -8,6 +8,20 @@ import tqdm
 pd.options.mode.chained_assignment = None
 
 
+FEATURE_TO_DROP = [
+    "Arithmancy",
+    "Potions",
+    "Care of Magical Creatures",
+    "Defense Against the Dark Arts",
+    "Index",
+    "First Name",
+    "Last Name",
+    "Birthday",
+    "Best Hand",
+    "Transfiguration",
+]
+
+
 def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
     """harry_plotter function
 
@@ -25,7 +39,7 @@ def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
     for i in range(min, max):
         for j in range(10):
             x.append(i + 0.1 * j)
-            y.append(sigmoide(estimate_member(i + 0.1 * j, theta0, theta1)))
+            y.append(sigmoide(estimate_log_odds(i + 0.1 * j, theta0, theta1)))
     plt.plot(x, y, "b")
     plt.plot([min, max], [0.5, 0.5], "black")
     plt.xlabel(feat)
@@ -33,28 +47,25 @@ def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
     plt.savefig(f"{house}.png")
 
 
-def estimate_member(value: float, theta0: float, theta1: float) -> float:
+def estimate_log_odds(X: np.ndarray, thetas: np.ndarray) -> np.ndarray:
     """estimate_member function
 
-    value: float: a value of a x on a specific line of the dataset.
-    theta0: float: the y-intercept of the in-training model.
-    theta1: float: the slope of the in-training model.
+    X: np.ndarray: dataset as a matrix + the bias.
+    thetas: np.ndarray: current theta values as a vector of the in training model.
 
-    return: float: the estimation of the model with the entry x.
-                   if the result is > 0 then x is member,
-                   else he is not.
+    return: np.ndarray: a vector corresponding of log(odds) for each line to be a membership.
     """
-    return theta0 + theta1 * value
+    return X.dot(thetas)
 
 
-def sigmoide(x: float) -> float:
+def sigmoide(log_odd: np.ndarray) -> np.ndarray:
     """sigmoide function
 
-    x: float: the parameter given to the sigmoide function
+    odds: np.ndarray: a vector of log(odds)
 
-    return: the value of sigmoide(x)
+    return: np.ndarray: a vector of probabilities
     """
-    return 1.0 / (1.0 + np.exp(-x))
+    return 1.0 / (1.0 + np.exp(-log_odd))
 
 
 def log_likelihood(df: pd.DataFrame, theta0: float, theta1: float) -> float:
@@ -70,7 +81,7 @@ def log_likelihood(df: pd.DataFrame, theta0: float, theta1: float) -> float:
     y = df[df.columns[0]]
     log_sum = 0
     for xi, yi in zip(x, y):
-        h = sigmoide(estimate_member(xi, theta0, theta1))
+        h = sigmoide(estimate_log_odds(xi, theta0, theta1))
         if yi == 1:
             log_sum += np.log(h)
         else:
@@ -78,83 +89,60 @@ def log_likelihood(df: pd.DataFrame, theta0: float, theta1: float) -> float:
     return -log_sum / df.count()
 
 
-def gradient_slope(
-    datas: list[tuple[float, float]], theta0: float, theta1: float
-) -> float:
+def gradients(X: np.ndarray, Y: np.ndarray, thetas: np.ndarray) -> np.ndarray:
     """gradient_slope function
 
     bla bla bla
     """
-    log_sum = 0
-    for xi, yi in datas:
-        h = sigmoide(estimate_member(xi, theta0, theta1))
-        log_sum += xi * (h - yi)
-    return log_sum / len(datas)
-
-
-def gradient_y_intercept(
-    datas: list[tuple[float, float]], theta0: float, theta1: float
-) -> float:
-    """gradient_y_intercept function
-
-    bla bla bla
-    """
-    log_sum = 0
-    for xi, yi in datas:
-        h = sigmoide(estimate_member(xi, theta0, theta1))
-        log_sum += h - yi
-    return log_sum / len(datas)
+    probs = sigmoide(estimate_log_odds(X, thetas))
+    return X.T.dot(np.subtract(probs, Y)) / Y.size
 
 
 def build_thetas(
-    df: pd.DataFrame, learning_rate: float, iterations: int
-) -> tuple[float, float]:
+    X: np.ndarray, Y: np.ndarray, learning_rate: float, iterations: int, thetas: dict
+):
     """build_thetas function
 
     bla bla bla
     """
-    theta0 = 0
-    theta1 = 0
-    x = df[df.columns[1]]
-    y = df[df.columns[0]]
-    datas = list(zip(x, y))
+    np_thetas = np.zeros(X.shape[1])
     for i in tqdm.tqdm(range(iterations)):
-        temp_theta0 = theta0
-        theta0 -= learning_rate * gradient_y_intercept(datas, theta0, theta1)
-        theta1 -= learning_rate * gradient_slope(datas, temp_theta0, theta1)
-    return (theta0, theta1)
+        np_thetas = np.subtract(np_thetas, learning_rate * gradients(X, Y, np_thetas))
+    for idx in range(np_thetas.shape[0]):
+        thetas[idx] = float(np_thetas[idx])
 
 
-def house_training(df: pd.DataFrame, house: str, feat: str, json_data: dict):
+def house_training(house: str, df: pd.DataFrame, json_data: dict):
     """
     df: Dataframe: original dataframe
     house: str: targeted house
-    feat: str: feature which wille be used for train the model
     json_data: dict: store results to build the model.json file later
 
-    rule: create an exploitable dataframe to train the model
-    return: a new dataframe
+    rule: train a model for a specific house and store it in the json_data
     """
-    new_df: pd.DataFrame = df.dropna(subset=feat).get(["Hogwarts House", feat])
-    new_df["Hogwarts House"] = new_df["Hogwarts House"].map(
-        lambda x: 1 if x == house else 0
-    )
-    new_df.rename(columns={"Hogwarts House": f"{house} member"}, inplace=True)
-    mean = new_df[feat].mean()
-    std = new_df[feat].std()
     json_data[house] = dict()
-    json_data[house]["feature"] = feat
-    json_data[house]["mean"] = mean
-    json_data[house]["std"] = std
-    new_df[feat] = new_df[feat].subtract(mean).divide(std)
-    print(f"training for {house} with feature {feat}...")
-    theta0, theta1 = build_thetas(new_df, 0.5, 100)
-    json_data[house]["theta0"] = theta0
-    json_data[house]["theta1"] = theta1
-    print("training succesfully done.")
-    print(f"creating feedback plots file {house}.png")
-    harry_plotter(new_df, house, theta0, theta1)
-    print(f"{house}.png created")
+    datas = df.drop(columns="Hogwarts House").to_numpy()
+    biais = np.ones((datas.shape[0], 1), dtype=float)
+
+    Y = df["Hogwarts House"].map(lambda x: 1 if x == house else 0).to_numpy()
+    X = np.hstack((datas, biais))
+
+    print(f"training model for {house}...")
+    build_thetas(X, Y, 0.5, 100, json_data[house])
+
+
+def prepare_df(path: str, json_data: dict):
+    df = pd.read_csv(path)
+    df.drop(columns=FEATURE_TO_DROP, inplace=True)
+    df.dropna(inplace=True)
+    for col in df.columns.drop("Hogwarts House"):
+        mean = df[col].mean()
+        std = df[col].std()
+        json_data[col] = dict()
+        json_data[col]["mean"] = mean
+        json_data[col]["std"] = std
+        df[col] = df[col].subtract(mean).divide(std)
+    return df
 
 
 def train(path):
@@ -166,11 +154,14 @@ def train(path):
     exceptions: raise exception if the file isn't readable
                 or is to incorrect format, depending of pandas exceptions.
     """
-    df = pd.read_csv(path)
     json_data = {}
-    house_training(df, "Slytherin", "Divination", json_data)
-    house_training(df, "Ravenclaw", "Charms", json_data)
-    house_training(df, "Gryffindor", "Transfiguration", json_data)
+    json_data["features"] = dict()
+    json_data["thetas"] = dict()
+    df = prepare_df(path, json_data["features"])
+    house_training("Slytherin", df, json_data["thetas"])
+    house_training("Ravenclaw", df, json_data["thetas"])
+    house_training("Gryffindor", df, json_data["thetas"])
+    house_training("Hufflepuff", df, json_data["thetas"])
     with open("model.json", "w") as io:
         json.dump(json_data, io, indent=4)
         io.close()
@@ -202,5 +193,5 @@ if __name__ == "__main__":
             train(av[1])
         except UnicodeDecodeError as e:
             print(f"{e.__class__.__name__}: {e.args[4]}")
-        except Exception as e:
-            print(f"{e.__class__.__name__}: {e.args}")
+        # except Exception as e:
+        #     print(f"{e.__class__.__name__}: {e.args}")
