@@ -5,7 +5,7 @@ import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from utils import load
+from tools.logreg_utils import load
 
 
 def main():

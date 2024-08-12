@@ -1,11 +1,12 @@
 """This script displays a histogram answering the question :
-Which Hogwarts course has a homogeneous score distribution between all four houses?"""
+Which Hogwarts course has a homogeneous score distribution
+between all four houses?"""
 
 import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from utils import load, standardize
+from tools.logreg_utils import load, standardize
 
 
 def main():

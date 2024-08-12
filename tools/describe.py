@@ -5,7 +5,7 @@ import sys
 import math
 import pandas as pd
 
-from utils import load
+from tools.logreg_utils import load
 
 
 def my_min(col: pd.Series) -> float:

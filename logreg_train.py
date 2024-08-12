@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from numpy import ndarray
 
-from utils import load, standardize
+from tools.logreg_utils import load, standardize
 from tools.logreg_config import FEATURES_TO_REMOVE
 
 
@@ -163,12 +163,12 @@ def main():
             weights = {}
             for col in houses.columns:
                 thetas = training(
-                    df.to_numpy(), houses[col].to_numpy(), nb_iter, learning_rate
+                    df.to_numpy(), houses[col].to_numpy(), epochs, learning_rate
                 )
                 weights[col] = thetas
 
             with open("weigths.json", "w", encoding="utf8") as file:
-                json.dump(weights, file)
+                json.dump(weights, file, indent=4)
 
 
 if __name__ == "__main__":

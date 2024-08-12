@@ -4,7 +4,7 @@ What are the two features that are similar ?"""
 import sys
 import matplotlib.pyplot as plt
 
-from utils import load, standardize
+from tools.logreg_utils import load, standardize
 
 
 def main():
