@@ -2,29 +2,12 @@ import sys
 import pandas as pd
 import json
 from sklearn.model_selection import train_test_split
-from logreg_train import prepare_df
-
-
-FEATURE_TO_DROP = [
-    "Arithmancy",
-    "Potions",
-    "Care of Magical Creatures",
-    "Defense Against the Dark Arts",
-    "Index",
-    "First Name",
-    "Last Name",
-    "Birthday",
-    "Best Hand",
-    "Transfiguration",
-]
+from logreg_train import prepare_df, train
+from tools.logreg_config import FEATURE_TO_DROP
 
 
 def evaluate(value, theta0, theta1) -> float:
     return value * theta1 + theta0
-
-
-def prepare(df: pd.DataFrame):
-    return df.drop(columns=FEATURE_TO_DROP).dropna()
 
 
 def score(csv_path):
@@ -37,11 +20,12 @@ def score(csv_path):
 
     - evaluate the score
     """
-    df = pd.read_csv(csv_path)
-    response = df["Hogwarts House"]
-    prepared_train = prepare(df)
+    model = {}
+    model["features"] = dict()
+    model["thetas"] = dict()
+    X, Y = prepare_df(csv_path, model["features"])
     train_df, test_df, res_train, res_test = train_test_split(
-        prepared_train, response, test_size=0.3, random_state=1
+        X, Y, test_size=0.3, random_state=1
     )
     print(f"{train_df=}, {test_df=}, {res_train=}, {res_test=}")
 
