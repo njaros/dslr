@@ -40,7 +40,7 @@ def score(csv_path):
     model["features"] = dict()
     model["thetas"] = dict()
     df = pd.read_csv(csv_path)
-    train_df, test_df = train_test_split(df, test_size=0.3, random_state=1)
+    train_df, test_df = train_test_split(df, test_size=0.3, random_state=42)
     X, Y = prepare_df(train_df, model["features"])
     train(X, Y, model["thetas"])
     res_test = test_df[["Index", "Hogwarts House"]]
