@@ -5,25 +5,7 @@ import numpy as np
 
 
 from utils import load, standardize
-
-
-FEATURES_TO_REMOVE = [
-    "Index",
-    "Hogwarts House",
-    "Arithmancy",
-    "Defense Against the Dark Arts",
-    "Divination",
-    "Muggle Studies",
-    "Ancient Runes",
-    "History of Magic",
-    "Transfiguration",
-    "Potions",
-    "Care of Magical Creatures",
-    "Charms",
-    "Flying",
-    # "Astronomy",
-    # "Herbology",
-]
+from tools.logreg_config import FEATURES_TO_REMOVE
 
 
 def predict(X: np.ndarray, thetas: np.ndarray) -> np.ndarray:
