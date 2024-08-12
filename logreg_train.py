@@ -51,9 +51,11 @@ def estimate_log_odds(X: np.ndarray, thetas: np.ndarray) -> np.ndarray:
     """estimate_member function
 
     X: np.ndarray: dataset as a matrix + the bias.
-    thetas: np.ndarray: current theta values as a vector of the in training model.
+    thetas: np.ndarray: current theta values as a vector of
+            the in training model.
 
-    return: np.ndarray: a vector corresponding of log(odds) for each line to be a membership.
+    return: np.ndarray: a vector corresponding of log(odds)
+                        for each line to be a membership.
     """
     return X.dot(thetas)
 
@@ -89,17 +91,17 @@ def log_likelihood(df: pd.DataFrame, theta0: float, theta1: float) -> float:
     return -log_sum / df.count()
 
 
-def gradients(X: np.ndarray, Y: np.ndarray, thetas: np.ndarray) -> np.ndarray:
+def gradients(X: np.ndarray, Y: list, thetas: np.ndarray) -> np.ndarray:
     """gradient_slope function
 
     bla bla bla
     """
     probs = sigmoide(estimate_log_odds(X, thetas))
-    return X.T.dot(np.subtract(probs, Y)) / Y.size
+    return X.T.dot(np.subtract(probs, Y)) / len(Y)
 
 
 def build_thetas(
-    X: np.ndarray, Y: np.ndarray, learning_rate: float, iterations: int, thetas: dict
+    X: np.ndarray, Y: list, learning_rate: float, iterations: int, thetas: dict
 ):
     """build_thetas function
 
@@ -112,7 +114,9 @@ def build_thetas(
         thetas[idx] = float(np_thetas[idx])
 
 
-def house_training(house: str, df: pd.DataFrame, json_data: dict):
+def house_training(
+    house: str, X: np.ndarray, Y_all_houses: np.ndarray, json_data: dict
+):
     """
     df: Dataframe: original dataframe
     house: str: targeted house
@@ -121,13 +125,10 @@ def house_training(house: str, df: pd.DataFrame, json_data: dict):
     rule: train a model for a specific house and store it in the json_data
     """
     json_data[house] = dict()
-    datas = df.drop(columns="Hogwarts House").to_numpy()
-    biais = np.ones((datas.shape[0], 1), dtype=float)
 
-    Y = df["Hogwarts House"].map(lambda x: 1 if x == house else 0).to_numpy()
-    X = np.hstack((datas, biais))
+    Y = [1 if y == house else 0 for y in Y_all_houses]
 
-    print(f"training model for {house}...")
+    print(f"shapes of dataset: {X.shape} training model for {house}...")
     build_thetas(X, Y, 0.5, 100, json_data[house])
 
 
@@ -135,37 +136,34 @@ def prepare_df(path: str, json_data: dict):
     df = pd.read_csv(path)
     df.drop(columns=FEATURE_TO_DROP, inplace=True)
     df.dropna(inplace=True)
-    for col in df.columns.drop("Hogwarts House"):
+    Y = df["Hogwarts House"].to_numpy()
+    df.drop(columns="Hogwarts House", inplace=True)
+    for col in df:
         mean = df[col].mean()
         std = df[col].std()
         json_data[col] = dict()
         json_data[col]["mean"] = mean
         json_data[col]["std"] = std
         df[col] = df[col].subtract(mean).divide(std)
-    return df
+    datas = df.to_numpy()
+    biais = np.ones((datas.shape[0], 1), dtype=float)
+    X = np.hstack((datas, biais))
+    return X, Y
 
 
-def train(path):
+def train(X: np.ndarray, Y: np.ndarray, json_data: dict):
     """
-    path: string -> it must be a relative or absolute path to a csv file.
+    df: a DataFrame
 
     rule: train a model to predict the Hogwarts House membership
 
     exceptions: raise exception if the file isn't readable
                 or is to incorrect format, depending of pandas exceptions.
     """
-    json_data = {}
-    json_data["features"] = dict()
-    json_data["thetas"] = dict()
-    df = prepare_df(path, json_data["features"])
-    house_training("Slytherin", df, json_data["thetas"])
-    house_training("Ravenclaw", df, json_data["thetas"])
-    house_training("Gryffindor", df, json_data["thetas"])
-    house_training("Hufflepuff", df, json_data["thetas"])
-    with open("model.json", "w") as io:
-        json.dump(json_data, io, indent=4)
-        io.close()
-        print("model trained and saved in model.json")
+    house_training("Slytherin", X, Y, json_data)
+    house_training("Ravenclaw", X, Y, json_data)
+    house_training("Gryffindor", X, Y, json_data)
+    house_training("Hufflepuff", X, Y, json_data)
 
 
 if __name__ == "__main__":
@@ -190,8 +188,16 @@ if __name__ == "__main__":
         )
     else:
         try:
-            train(av[1])
+            json_data = {}
+            json_data["features"] = dict()
+            json_data["thetas"] = dict()
+            X, Y = prepare_df(av[1], json_data["features"])
+            train(X, Y, json_data["thetas"])
+            with open("model.json", "w") as io:
+                json.dump(json_data, io, indent=4)
+                io.close()
+                print("model trained and saved in model.json")
         except UnicodeDecodeError as e:
             print(f"{e.__class__.__name__}: {e.args[4]}")
-        # except Exception as e:
-        #     print(f"{e.__class__.__name__}: {e.args}")
+        except Exception as e:
+            print(f"{e.__class__.__name__}: {e.args}")
