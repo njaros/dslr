@@ -9,8 +9,9 @@ import pandas as pd
 import numpy as np
 from numpy import ndarray
 
-from tools.logreg_utils import load, standardize
-from tools.logreg_config import FEATURES_TO_REMOVE
+from tools.logreg_utils import load, check_args
+from tools.logreg_config import FEATURES_TO_REMOVE, HELP_TRAIN
+
 
 
 def sigmoid_function(
@@ -88,7 +89,7 @@ def find_gradients(
     return gradients
 
 
-def training(
+def training_for_each_houses(
     features: ndarray[float],
     target: ndarray[int],
     epochs: int,
@@ -103,7 +104,8 @@ def training(
     features: a vector of size (nb of features).
     target: a vector of our target 1 or 0 (1 is for class membership),
         its size is (nb of students).
-    epochs: nb of one complete pass of the training data set through our training algorithm.
+    epochs: nb of one complete pass of the training data set through
+        our training algorithm.
     learning_rate: a hyper-parameter used to govern the pace at which
         our algorithm updates thetas.
     house: name of the house for which we train our model.
@@ -131,7 +133,41 @@ def training(
     return list(thetas)
 
 
-def get_ready(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def train(
+    df: pd.DataFrame,
+    houses: pd.DataFrame,
+    epochs: int,
+    learning_rate: float,
+    json_data: dict[str, list[float]],
+):
+    """Trains dataset for each Hogwarts houses, and fill
+    json_data dict with our optimals thetas.
+
+    Parameters
+    ----------
+    df: DataFrame with our selected features.
+    houses: DataFrame for houses: each column
+        represents one house (with 1 and 0).
+    epochs: nb of one complete pass of the training data set through
+        our training algorithm.
+    learning_rate: a hyper-parameter used to govern the pace at which
+        our algorithm updates thetas.
+    json_data: a dict to fill : for each houses => a list of thetas.
+    """
+    for col in houses.columns:
+        thetas = training_for_each_houses(
+            df.to_numpy(),
+            houses[col].to_numpy().astype(int),
+            epochs,
+            learning_rate,
+            col,
+        )
+        json_data[col] = thetas
+
+
+def get_ready(
+    df: pd.DataFrame, json_data: dict[str, dict[str, float]]
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Prepare dataset for training with multi-factor logistic regression:
     drop nan values,
     drop unwanted features,
@@ -141,6 +177,8 @@ def get_ready(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     Parameters
     ----------
     df: our DataFrame.
+    json_data: a dict to fill : for each features
+        => a dict of mean and std.
 
     Returns
     -------
@@ -150,70 +188,34 @@ def get_ready(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     df.dropna(inplace=True)
     houses_df = pd.get_dummies(df["Hogwarts House"])
-    # print(houses_df)
 
     new_df = df.select_dtypes(["number"])
     new_df.drop(columns=FEATURES_TO_REMOVE, inplace=True)
-    df_stand = standardize(new_df)
+    for col in new_df:
+        mean = new_df[col].mean()
+        std = new_df[col].std()
+        json_data[col] = dict()
+        json_data[col]["mean"] = mean
+        json_data[col]["std"] = std
+        new_df[col] = new_df[col].subtract(mean).divide(std)
 
-    return (df_stand, houses_df)
-
-
-def check_args() -> tuple[int, float]:
-    """Checks the program arguments. If there are no optional arguments
-    then it returns a predefined number of epochs and learning rate.
-
-    Returns
-    -------
-    epochs: nb of one complete pass of the training data set through our training algorithm.
-        Predefined at 100.
-    learning_rate: a hyper-parameter used to govern the pace at which
-        our algorithm updates thetas.
-        Predefined at 3.0.
-    """
-    av = sys.argv
-    ac = len(av)
-    if ac == 1 or av[1] == "-h" or av[1] == "-help":
-        print(
-            """
-            usage : python logreg_train.py path_csv_file (epochs learning_rate).
-
-            rule : this program will train a model to predict
-                   the house membership of a Hogwarts student
-                   and generates a file with weights for each house
-                   named weights.json.
-            """
-        )
-        sys.exit()
-    if ac != 2 and ac != 4:
-        print("Incorrect input.")
-        sys.exit()
-    if ac == 2:
-        return 100, 3.0
-    return int(sys.argv[2]), float(sys.argv[3])
+    return (new_df, houses_df)
 
 
 def main():
     """Main function"""
     try:
-        epochs, learning_rate = check_args()
+        epochs, learning_rate = check_args(HELP_TRAIN)
         dataset = load(sys.argv[1])
         pd.set_option("future.no_silent_downcasting", True)
-        df, houses = get_ready(dataset)
-        weights = {}
-
-        for col in houses.columns:
-            thetas = training(
-                df.to_numpy(),
-                houses[col].to_numpy().astype(int),
-                epochs,
-                learning_rate,
-                col,
-            )
-            weights[col] = thetas
+        json_data = {}
+        json_data["features"] = dict()
+        json_data["thetas"] = dict()
+        df, houses = get_ready(dataset, json_data["features"])
+        train(df, houses, epochs, learning_rate, json_data["thetas"])
 
         with open("weigths.json", "w", encoding="utf8") as file:
-            json.dump(weights, file, indent=4)
+            json.dump(json_data, file, indent=4)
 
     except ValueError:
         print("There is a problem in your input parameters.")
