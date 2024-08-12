@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import json
+from tools.logreg_config import FEATURE_TO_DROP
 
 
 def evaluate(value, theta0, theta1) -> float:

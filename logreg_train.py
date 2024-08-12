@@ -4,22 +4,10 @@ import sys
 import matplotlib.pyplot as plt
 import json
 import tqdm
+from tools.logreg_config import FEATURE_TO_DROP
+
 
 pd.options.mode.chained_assignment = None
-
-
-FEATURE_TO_DROP = [
-    "Arithmancy",
-    "Potions",
-    "Care of Magical Creatures",
-    "Defense Against the Dark Arts",
-    "Index",
-    "First Name",
-    "Last Name",
-    "Birthday",
-    "Best Hand",
-    "Transfiguration",
-]
 
 
 def harry_plotter(df: pd.DataFrame, house: str, theta0: float, theta1: float):
