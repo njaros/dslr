@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-from utils import load, standardize
+from tools.logreg_utils import load, standardize
 from tools.logreg_config import FEATURES_TO_REMOVE
 
 
