@@ -89,7 +89,7 @@ def gradients(X: np.ndarray, Y: list, thetas: np.ndarray) -> np.ndarray:
 
 
 def build_thetas(
-    X: np.ndarray, Y: list, learning_rate: float, iterations: int, thetas: dict
+    X: np.ndarray, Y: list, learning_rate: float, iterations: int, thetas: list
 ):
     """build_thetas function
 
@@ -99,7 +99,7 @@ def build_thetas(
     for i in tqdm.tqdm(range(iterations)):
         np_thetas = np.subtract(np_thetas, learning_rate * gradients(X, Y, np_thetas))
     for idx in range(np_thetas.shape[0]):
-        thetas[idx] = float(np_thetas[idx])
+        thetas.append(np_thetas[idx])
 
 
 def house_training(
@@ -112,16 +112,15 @@ def house_training(
 
     rule: train a model for a specific house and store it in the json_data
     """
-    json_data[house] = dict()
+    json_data[house] = []
 
     Y = [1 if y == house else 0 for y in Y_all_houses]
 
-    print(f"shapes of dataset: {X.shape} training model for {house}...")
+    print(f"training model for {house}...")
     build_thetas(X, Y, 0.5, 100, json_data[house])
 
 
-def prepare_df(path: str, json_data: dict):
-    df = pd.read_csv(path)
+def prepare_df(df: pd.DataFrame, json_data: dict) -> tuple[np.ndarray, np.ndarray]:
     df.drop(columns=FEATURE_TO_DROP, inplace=True)
     df.dropna(inplace=True)
     Y = df["Hogwarts House"].to_numpy()
@@ -179,7 +178,8 @@ if __name__ == "__main__":
             json_data = {}
             json_data["features"] = dict()
             json_data["thetas"] = dict()
-            X, Y = prepare_df(av[1], json_data["features"])
+            df = pd.read_csv(av[1])
+            X, Y = prepare_df(df, json_data["features"])
             train(X, Y, json_data["thetas"])
             with open("model.json", "w") as io:
                 json.dump(json_data, io, indent=4)
