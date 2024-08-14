@@ -61,4 +61,7 @@ def check_args(help_msg: str) -> tuple[int, float]:
         sys.exit()
     if ac == 2:
         return 100, 3.0
-    return int(sys.argv[2]), float(sys.argv[3])
+    epochs = int(sys.argv[2])
+    learning_rate = float(sys.argv[3])
+    assert epochs > 0, "epochs must be higher than 0"
+    return epochs, learning_rate
