@@ -140,7 +140,6 @@ def describe(dataset: pd.DataFrame):
             "Mean",
             "Variance",
             "Std",
-            "Standard Error",
             "Min",
             "25%",
             "50%",
