@@ -76,11 +76,6 @@ def my_std(col: pd.Series) -> float:
     return math.sqrt(my_variance(col))
 
 
-def my_standard_error(col: pd.Series) -> float:
-    """Calculate Stantard Error"""
-    return my_std(col) / math.sqrt(len(col))
-
-
 def my_non_normalized_kurtosis(col: pd.Series) -> float:
     """Calculate the non normalized Kurtosis value of a column
     If tells us how values are extreme compared
@@ -166,7 +161,6 @@ def describe(dataset: pd.DataFrame):
                     my_mean(data),
                     my_variance(data),
                     my_std(data),
-                    my_standard_error(data),
                     my_min(data),
                     my_quartile_25(data),
                     my_median(data),
