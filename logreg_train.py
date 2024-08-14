@@ -13,7 +13,6 @@ from tools.logreg_utils import load, check_args
 from tools.logreg_config import FEATURES_TO_REMOVE, HELP_TRAIN
 
 
-
 def sigmoid_function(
     X: ndarray[float], thetas: ndarray[float]
 ) -> tuple[ndarray[float], ndarray[float]]:
@@ -115,7 +114,6 @@ def training_for_each_houses(
     m = features.shape[0]
     X = np.hstack((features, np.ones((m, 1))))  # ndarray(m, n-features + 1)
     thetas = np.zeros(X.shape[1])  # ndarray(n-features + 1)
-
     for i in range(epochs):
         proba, z = sigmoid_function(X, thetas)
         cost_history.append(cost_function(proba, target))
