@@ -3,6 +3,8 @@
 import sys
 import os
 import pandas as pd
+from numpy import ndarray
+import matplotlib.pyplot as plt
 
 
 def standardize(dataset: pd.DataFrame) -> pd.DataFrame:
@@ -65,3 +67,21 @@ def check_args(help_msg: str) -> tuple[int, float]:
     learning_rate = float(sys.argv[3])
     assert epochs > 0, "epochs must be higher than 0"
     return epochs, learning_rate
+
+
+def harry_plotter(
+    z: ndarray[float],
+    proba: ndarray[float],
+    target: ndarray[int],
+    cost_history: list[float],
+    house: str,
+    epochs: int,
+):
+    """"""
+    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    axes[0].scatter(z, target, color="b", s=5, alpha=0.4)
+    axes[0].scatter(z, proba, color="r", s=4, alpha=0.6)
+    axes[0].set_title(f"Data training for {house}")
+    axes[1].plot(list(range(epochs + 1)), cost_history)
+    axes[1].set_title("Cost history")
+    plt.show()

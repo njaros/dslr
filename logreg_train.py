@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from numpy import ndarray
 
-from tools.logreg_utils import load, check_args
+from tools.logreg_utils import load, check_args, harry_plotter
 from tools.logreg_config import FEATURES_TO_REMOVE, HELP_TRAIN
 
 
@@ -120,13 +120,9 @@ def batch_gradient_descent(
         gradients = find_gradients(X, proba, target)
         thetas = np.subtract(thetas, (learning_rate * gradients))
 
-    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
-    axes[0].scatter(z, target, color="b", s=5, alpha=0.4)
-    axes[0].scatter(z, proba, color="r", s=4, alpha=0.6)
-    axes[0].set_title(f"Data training for {house}")
-    axes[1].plot(list(range(i + 1)), cost_history)
-    axes[1].set_title("Cost history")
-    plt.show()
+    harry_plotter(z, proba, target, cost_history, house, i)
+
+    return list(thetas)
 
 
 def mini_batch_gradient_descent(
@@ -178,14 +174,16 @@ def mini_batch_gradient_descent(
     # blop = list(range(len(cost_history)))
     # ticks = blop[::nb_chunk]
     # tick_labels = [int(tick / nb_chunk) for tick in ticks]
-    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
-    axes[0].scatter(full_z, target, color="b", s=5, alpha=0.4)
-    axes[0].scatter(full_z, full_proba, color="r", s=4, alpha=0.6)
-    axes[0].set_title(f"Data training for {house}")
-    axes[1].plot(list(range(i + 1)), cost_history)
-    axes[1].set_title("Cost history")
+    # _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    # axes[0].scatter(full_z, target, color="b", s=5, alpha=0.4)
+    # axes[0].scatter(full_z, full_proba, color="r", s=4, alpha=0.6)
+    # axes[0].set_title(f"Data training for {house}")
+    # axes[1].plot(blop, cost_history)
+    # axes[1].set_title("Cost history")
     # axes[1].set_xticks(ticks, labels=tick_labels)
-    plt.show()
+    # plt.show()
+
+    harry_plotter(full_z, full_proba, target, cost_history, house, i)
 
     return list(thetas)
 
@@ -229,14 +227,7 @@ def stochastic_gradient_descent(
             j += 1
         cost_history.append(cost_function(proba_array, target))
 
-
-    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
-    axes[0].scatter(z_array, target, color="b", s=5, alpha=0.4)
-    axes[0].scatter(z_array, proba_array, color="r", s=4, alpha=0.6)
-    axes[0].set_title(f"Data training for {house}")
-    axes[1].plot(list(range(i + 1)), cost_history)
-    axes[1].set_title("Cost history")
-    plt.show()
+    harry_plotter(z_array, proba_array, target, cost_history, house, i)
 
     return list(thetas)
 
