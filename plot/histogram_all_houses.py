@@ -5,7 +5,7 @@ between all four houses?"""
 import sys
 import matplotlib.pyplot as plt
 
-from logreg_utils import load, standardize
+from tools.logreg_utils import load, standardize
 
 
 def main():
