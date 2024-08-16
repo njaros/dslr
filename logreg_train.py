@@ -200,7 +200,7 @@ def stochastic_gradient_descent(
     learning_rate: float,
     house: str,
 ):
-    """Our learning algorithm, using gradient descent.
+    """Our learning algorithm, using stochastic gradient descent.
     We will find the most optimized thetas to minimize the cost function.
 
     Parameters
@@ -332,8 +332,8 @@ def main():
         with open("weigths.json", "w", encoding="utf8") as file:
             json.dump(json_data, file, indent=4)
 
-    # except ValueError:
-    #     print("There is a problem in your input parameters.")
+    except ValueError:
+        print("There is a problem in your input parameters.")
     except AssertionError as msg:
         print(f"{msg.__class__.__name__}: {msg}")
 

@@ -182,5 +182,5 @@ if __name__ == "__main__":
         print("There is a problem in your input parameters.")
     except AssertionError as msg:
         print(f"{msg.__class__.__name__}: {msg}")
-    # except Exception as e:
-    #     print(f"{e.__class__.__name__}: {e.args}")
+    except Exception as e:
+        print(f"{e.__class__.__name__}: {e.args}")
