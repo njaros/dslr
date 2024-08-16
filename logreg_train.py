@@ -88,14 +88,14 @@ def find_gradients(
     return gradients
 
 
-def training_for_each_houses(
+def batch_gradient_descent(
     features: ndarray[float],
     target: ndarray[int],
     epochs: int,
     learning_rate: float,
     house: str,
 ):
-    """Our learning algorithm, using gradient descent.
+    """Our learning algorithm, using batch gradient descent.
     We will find the most optimized thetas to minimize the cost function.
 
     Parameters
@@ -128,6 +128,116 @@ def training_for_each_houses(
     axes[1].set_title("Cost history")
     plt.show()
 
+
+def mini_batch_gradient_descent(
+    features: ndarray[float],
+    target: ndarray[int],
+    epochs: int,
+    learning_rate: float,
+    house: str,
+):
+    """Our learning algorithm, using mini batch gradient descent.
+    We will find the most optimized thetas to minimize the cost function.
+
+    Parameters
+    ----------
+    features: a vector of size (nb of features).
+    target: a vector of our target 1 or 0 (1 is for class membership),
+        its size is (nb of students).
+    epochs: nb of one complete pass of the training data set through
+        our training algorithm.
+    learning_rate: a hyper-parameter used to govern the pace at which
+        our algorithm updates thetas.
+    house: name of the house for which we train our model.
+    """
+    cost_history: list[float] = []
+    nb_chunk = 50
+
+    m = features.shape[0]
+    chunk_size = int(m / nb_chunk)
+    X = np.hstack((features, np.ones((m, 1))))  # ndarray(m, n-features + 1)
+    thetas = np.zeros(X.shape[1])  # ndarray(n-features + 1)
+
+    for i in range(epochs):
+        j = chunk_size
+        full_proba = np.empty(0)
+        full_z = np.empty(0)
+
+        for c in range(0, m, chunk_size):
+            chunk_X = X[c:j]
+            chunk_target = target[c:j]
+            proba, z = sigmoid_function(chunk_X, thetas)
+            full_proba = np.append(full_proba, proba)
+            full_z = np.append(full_z, z)
+            # cost_history.append(cost_function(proba, chunk_target))
+            gradients = find_gradients(chunk_X, proba, chunk_target)
+            thetas = np.subtract(thetas, (learning_rate * gradients))
+            j += chunk_size
+        cost_history.append(cost_function(full_proba, target))
+
+    # blop = list(range(len(cost_history)))
+    # ticks = blop[::nb_chunk]
+    # tick_labels = [int(tick / nb_chunk) for tick in ticks]
+    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    axes[0].scatter(full_z, target, color="b", s=5, alpha=0.4)
+    axes[0].scatter(full_z, full_proba, color="r", s=4, alpha=0.6)
+    axes[0].set_title(f"Data training for {house}")
+    axes[1].plot(list(range(i + 1)), cost_history)
+    axes[1].set_title("Cost history")
+    # axes[1].set_xticks(ticks, labels=tick_labels)
+    plt.show()
+
+    return list(thetas)
+
+
+def stochastic_gradient_descent(
+    features: ndarray[float],
+    target: ndarray[int],
+    epochs: int,
+    learning_rate: float,
+    house: str,
+):
+    """Our learning algorithm, using gradient descent.
+    We will find the most optimized thetas to minimize the cost function.
+
+    Parameters
+    ----------
+    features: a vector of size (nb of features).
+    target: a vector of our target 1 or 0 (1 is for class membership),
+        its size is (nb of students).
+    epochs: nb of one complete pass of the training data set through
+        our training algorithm.
+    learning_rate: a hyper-parameter used to govern the pace at which
+        our algorithm updates thetas.
+    house: name of the house for which we train our model.
+    """
+    cost_history: list[float] = []
+
+    m = features.shape[0]
+    X = np.hstack((features, np.ones((m, 1))))  # ndarray(m, n-features + 1)
+    thetas = np.zeros(X.shape[1])  # ndarray(n-features + 1)
+    for i in range(epochs):
+        j = 0
+        proba_array = np.ndarray((X.shape[0]))
+        z_array = np.ndarray((X.shape[0]))
+        for line in X:
+            proba, z = sigmoid_function(line, thetas)
+            proba_array[j] = proba
+            z_array[j] = z
+            gradients = find_gradients(line, proba, target[j])
+            thetas = np.subtract(thetas, (learning_rate * gradients))
+            j += 1
+        cost_history.append(cost_function(proba_array, target))
+
+
+    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    axes[0].scatter(z_array, target, color="b", s=5, alpha=0.4)
+    axes[0].scatter(z_array, proba_array, color="r", s=4, alpha=0.6)
+    axes[0].set_title(f"Data training for {house}")
+    axes[1].plot(list(range(i + 1)), cost_history)
+    axes[1].set_title("Cost history")
+    plt.show()
+
     return list(thetas)
 
 
@@ -153,7 +263,7 @@ def train(
     json_data: a dict to fill : for each houses => a list of thetas.
     """
     for col in houses.columns:
-        thetas = training_for_each_houses(
+        thetas = mini_batch_gradient_descent(
             df.to_numpy(),
             houses[col].to_numpy().astype(int),
             epochs,
@@ -215,8 +325,8 @@ def main():
         with open("weigths.json", "w", encoding="utf8") as file:
             json.dump(json_data, file, indent=4)
 
-    except ValueError:
-        print("There is a problem in your input parameters.")
+    # except ValueError:
+    #     print("There is a problem in your input parameters.")
     except AssertionError as msg:
         print(f"{msg.__class__.__name__}: {msg}")
 
