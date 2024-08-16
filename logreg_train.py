@@ -58,7 +58,6 @@ def cost_function(sigma: ndarray[float], target: ndarray[int]) -> float:
     res: product of all probabilities, using Bernoulli’s law.
     """
     res = -sum(target * np.log(sigma) + (1 - target) * np.log(1 - sigma)) / target.size
-
     return res
 
 
@@ -131,6 +130,56 @@ def training_for_each_houses(
     return list(thetas)
 
 
+def stochastic_gradient_descent(
+    features: ndarray[float],
+    target: ndarray[int],
+    epochs: int,
+    learning_rate: float,
+    house: str,
+):
+    """Our learning algorithm, using gradient descent.
+    We will find the most optimized thetas to minimize the cost function.
+
+    Parameters
+    ----------
+    features: a vector of size (nb of features).
+    target: a vector of our target 1 or 0 (1 is for class membership),
+        its size is (nb of students).
+    epochs: nb of one complete pass of the training data set through
+        our training algorithm.
+    learning_rate: a hyper-parameter used to govern the pace at which
+        our algorithm updates thetas.
+    house: name of the house for which we train our model.
+    """
+    cost_history: list[float] = []
+
+    m = features.shape[0]
+    X = np.hstack((features, np.ones((m, 1))))  # ndarray(m, n-features + 1)
+    thetas = np.zeros(X.shape[1])  # ndarray(n-features + 1)
+    for i in range(epochs):
+        j = 0
+        proba_array = np.ndarray((X.shape[0]))
+        z_array = np.ndarray((X.shape[0]))
+        for line in X:
+            proba, z = sigmoid_function(line, thetas)
+            proba_array[j] = proba
+            z_array[j] = z
+            gradients = find_gradients(line, proba, target[j])
+            thetas = np.subtract(thetas, (learning_rate * gradients))
+            j += 1
+        cost_history.append(cost_function(proba_array, target))
+
+    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
+    axes[0].scatter(z_array, target, color="b", s=5, alpha=0.4)
+    axes[0].scatter(z_array, proba_array, color="r", s=4, alpha=0.6)
+    axes[0].set_title(f"Data training for {house}")
+    axes[1].plot(list(range(i + 1)), cost_history)
+    axes[1].set_title("Cost history")
+    plt.savefig(f"cost_history_stochastic_{house}.png")
+
+    return list(thetas)
+
+
 def train(
     df: pd.DataFrame,
     houses: pd.DataFrame,
@@ -153,7 +202,7 @@ def train(
     json_data: a dict to fill : for each houses => a list of thetas.
     """
     for col in houses.columns:
-        thetas = training_for_each_houses(
+        thetas = stochastic_gradient_descent(
             df.to_numpy(),
             houses[col].to_numpy().astype(int),
             epochs,
@@ -184,11 +233,11 @@ def get_ready(
     houses_df: a new DataFrame for houses: each column
         represents one house (with 1 and 0).
     """
+
+    df.drop(columns=FEATURES_TO_REMOVE, inplace=True)
     df.dropna(inplace=True)
     houses_df = pd.get_dummies(df["Hogwarts House"])
-
     new_df = df.select_dtypes(["number"])
-    new_df.drop(columns=FEATURES_TO_REMOVE, inplace=True)
     for col in new_df:
         mean = new_df[col].mean()
         std = new_df[col].std()
@@ -215,8 +264,8 @@ def main():
         with open("weigths.json", "w", encoding="utf8") as file:
             json.dump(json_data, file, indent=4)
 
-    except ValueError:
-        print("There is a problem in your input parameters.")
+    # except ValueError:
+    #     print("There is a problem in your input parameters.")
     except AssertionError as msg:
         print(f"{msg.__class__.__name__}: {msg}")
 
