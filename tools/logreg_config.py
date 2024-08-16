@@ -21,7 +21,7 @@ FEATURES_TO_REMOVE = [
 #      1 = batch
 #      2 = stochastic
 #      3 = mini batch
-CHOOSEN_ALGORITHM = 1
+CHOOSEN_ALGORITHM = 2
 
 # If choosen algorithm is 3 (mini batch), you have to define
 # how many batch to do
