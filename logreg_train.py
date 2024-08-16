@@ -4,13 +4,17 @@ that will be used for the prediction."""
 
 import sys
 import json
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from numpy import ndarray
 
 from tools.logreg_utils import load, check_args, harry_plotter
-from tools.logreg_config import FEATURES_TO_REMOVE, HELP_TRAIN
+from tools.logreg_config import (
+    FEATURES_TO_REMOVE,
+    HELP_TRAIN,
+    CHOOSEN_ALGORITHM,
+    NUMBER_OF_BATCH,
+)
 
 
 def sigmoid_function(
@@ -57,7 +61,8 @@ def cost_function(sigma: ndarray[float], target: ndarray[int]) -> float:
     -------
     res: product of all probabilities, using Bernoulli’s law.
     """
-    res = -sum(target * np.log(sigma) + (1 - target) * np.log(1 - sigma)) / target.size
+    res = -sum([np.log(x) if y == 1 else np.log(1 - x) for x, y in zip(sigma, target)])
+    # res = -sum(target * np.log(sigma) + (1 - target) * np.log(1 - sigma)) / target.size
 
     return res
 
@@ -147,7 +152,7 @@ def mini_batch_gradient_descent(
     house: name of the house for which we train our model.
     """
     cost_history: list[float] = []
-    nb_chunk = 50
+    nb_chunk = NUMBER_OF_BATCH
 
     m = features.shape[0]
     chunk_size = int(m / nb_chunk)
@@ -253,8 +258,19 @@ def train(
         our algorithm updates thetas.
     json_data: a dict to fill : for each houses => a list of thetas.
     """
+    if CHOOSEN_ALGORITHM == 1:
+        print("Algorithm chosen: Batch gradient descent")
+        f = batch_gradient_descent
+    elif CHOOSEN_ALGORITHM == 2:
+        print("Algorithm chosen: Stochastic gradient descent")
+        f = stochastic_gradient_descent
+    elif CHOOSEN_ALGORITHM == 3:
+        print("Algorithm chosen: Mini batch gradient descent")
+        f = mini_batch_gradient_descent
+    else:
+        raise AssertionError(f"{CHOOSEN_ALGORITHM} must be 1, 2, or 3")
     for col in houses.columns:
-        thetas = mini_batch_gradient_descent(
+        thetas = f(
             df.to_numpy(),
             houses[col].to_numpy().astype(int),
             epochs,
