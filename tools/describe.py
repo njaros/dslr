@@ -105,7 +105,7 @@ def my_non_normalized_kurtosis(col: pd.Series) -> float:
     """
     std = my_std(col)
     mean = my_mean(col)
-    return sum([((x - mean) / std) ** 4 for x in col]) / len(col)
+    return sum(((x - mean) / std) ** 4 for x in col) / len(col)
 
 
 def my_normalized_kurtosis(col: pd.Series) -> float:
@@ -129,7 +129,7 @@ def my_skewness(col: pd.Series) -> float:
     """
     std = my_std(col)
     mean = my_mean(col)
-    return sum([((x - mean) / std) ** 3 for x in col]) / len(col)
+    return sum(((x - mean) / std) ** 3 for x in col) / len(col)
 
 
 def describe(dataset: pd.DataFrame):
@@ -153,7 +153,6 @@ def describe(dataset: pd.DataFrame):
     for col in dataset.columns:
         try:
             if pd.api.types.is_numeric_dtype(dataset[col]) and col != "Index":
-                # data_lst = sorted([x for x in data[col].tolist() if not math.isnan(x)])
                 data = dataset[col].sort_values().dropna()
                 dscb[col] = [
                     len(data),
