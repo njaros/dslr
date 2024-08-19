@@ -46,11 +46,3 @@ HELP_SCORE = """
                  > one part for train the model using the algorithm
                  > the other part for calculate the efficiency of the model
             """
-
-HELP_PREDICT = """
-            usage : python logreg_predict.py path_csv_file.
-
-            rule : this program will predict the house membership
-                   for each line in a dataset containing a set of
-                   school student in Hogwarts.
-            """

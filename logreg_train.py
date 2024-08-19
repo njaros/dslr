@@ -62,7 +62,12 @@ def cost_function(sigma: ndarray[float], target: ndarray[int]) -> float:
     res: product of all probabilities, using Bernoulli’s law.
     """
     res = (
-        -sum([np.log(x) if y == 1 else np.log(1 - x) for x, y in zip(sigma, target)])
+        -sum(
+            [
+                np.log(x) if y == 1 else np.log(1 - x)
+                for x, y in zip(sigma, target)
+            ]
+        )
         / target.size
     )
     # res = -sum(target * np.log(sigma) + (1 - target) * np.log(1 - sigma)) / target.size
@@ -338,6 +343,8 @@ def main():
     except ValueError:
         print("There is a problem in your input parameters.")
     except AssertionError as msg:
+        print(f"{msg.__class__.__name__}: {msg}")
+    except Exception as msg:
         print(f"{msg.__class__.__name__}: {msg}")
 
 
