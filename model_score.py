@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import os
 from sklearn.model_selection import train_test_split
 from logreg_train import get_ready, train
 from logreg_predict import predict
@@ -114,6 +115,8 @@ def matrices_interpretor(matrices: dict[str, dict[str, int]], houses: list[str])
             "house2": ....
           }
     houses: a list of each Hogwarts House"""
+    if not os.path.exists("./scores"):
+        os.makedirs("./scores")
     accuracy = 0
     for house in houses:
         plt.clf()
@@ -183,4 +186,4 @@ if __name__ == "__main__":
     except AssertionError as msg:
         print(f"{msg.__class__.__name__}: {msg}")
     except Exception as e:
-        print(f"{e.__class__.__name__}: {e.args}")
+        print(f"{e.__class__.__name__}: {e}")
