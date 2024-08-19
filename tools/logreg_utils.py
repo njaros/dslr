@@ -12,7 +12,9 @@ def standardize(dataset: pd.DataFrame) -> pd.DataFrame:
     df = dataset.copy(deep=True)
     for col in df.columns:
         if not pd.api.types.is_string_dtype(df[col]):
-            df[col] = df[col].dropna().subtract(df[col].mean()).divide(df[col].std())
+            df[col] = (
+                df[col].dropna().subtract(df[col].mean()).divide(df[col].std())
+            )
 
     return df
 
@@ -77,7 +79,8 @@ def harry_plotter(
     house: str,
     epochs: int,
 ):
-    """"""
+    """Plot results of sigmoid function and
+    results of cost function for each model."""
     _, axes = plt.subplots(nrows=1, ncols=2, figsize=(20, 5))
     axes[0].scatter(z, target, color="b", s=5, alpha=0.4)
     axes[0].scatter(z, proba, color="r", s=4, alpha=0.6)

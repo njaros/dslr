@@ -1,5 +1,5 @@
 """This program take a dataset as a parameter and display information
-for all numerical features"""
+for all numerical features."""
 
 import sys
 import math
@@ -181,8 +181,6 @@ def main():
     else:
         dataset = load(sys.argv[1])
         if dataset is not None:
-            # print(data.head(10))
-            # print(data.describe())
             describe(dataset)
 
 
